@@ -37,12 +37,13 @@ jobs:
         # Coverage upload only on the canonical matrix entry to avoid
         # double-counting (Codecov merges multiple uploads but it's noisy).
         if: matrix.os == 'ubuntu-latest' && matrix.version == '1'
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5
         if: matrix.os == 'ubuntu-latest' && matrix.version == '1'
         with:
-          file: lcov.info
+          files: lcov.info
           fail_ci_if_error: false
         env:
-          # CODECOV_TOKEN is optional for public repos (codecov-action@v4
-          # uses OIDC). Set the secret for private repos.
+          # Required for both public and private repos. Get the token from
+          # https://app.codecov.io/gh/jaco4873/Aifc.jl/settings and add it
+          # as a GitHub secret named CODECOV_TOKEN.
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
