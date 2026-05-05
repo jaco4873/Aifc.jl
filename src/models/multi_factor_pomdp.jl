@@ -54,7 +54,7 @@ tensor-layout convention.
 - `check::Bool` — validate stochasticity + shape match (default `true`)
 - `atol::Real` — tolerance for stochasticity check (default `1e-8`)
 """
-struct MultiFactorDiscretePOMDP{T<:Real} <: GenerativeModel
+struct MultiFactorDiscretePOMDP{T<:Real} <: AbstractDiscretePOMDP
     A::Vector{Array{T}}
     B::Vector{Array{T,3}}
     C::Vector{Vector{T}}

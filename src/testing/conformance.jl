@@ -21,7 +21,7 @@ using ..Aifc: GenerativeModel, Inference, PolicyInference, ActionSelector
 using ..Aifc: state_prior, observation_distribution, transition_distribution
 using ..Aifc: log_preferences, action_space, log_policy_prior
 using ..Aifc: goal_state_prior, state_factors, observation_modalities
-using ..Aifc: infer_states, infer_parameters, infer_jointly, free_energy
+using ..Aifc: infer_states, infer_parameters, free_energy
 using ..Aifc: posterior_policies, expected_free_energy
 using ..Aifc: pragmatic_value, epistemic_value, enumerate_policies
 using ..Aifc: sample_action, log_action_probabilities
@@ -117,9 +117,6 @@ Verify `alg` satisfies the state-inference contract on model `m`:
 function test_state_inference(alg::Inference, m::GenerativeModel;
                                 rng::AbstractRNG = Xoshiro(1))
     @testset "StateInference conformance ($(typeof(alg)))" begin
-        # Sanity: this algorithm supports states
-        @test Aifc.supports_states(alg)
-
         # Generate a sample observation under the model's prior
         sp = state_prior(m)
         s = rand(rng, sp)

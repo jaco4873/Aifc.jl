@@ -41,7 +41,7 @@ replaced by the digamma-corrected effective likelihood (`expectedLogA` →
 column-normalized exponential). This is what couples parameter uncertainty
 to belief inference. Set to `false` to use the simple `pA / Σ pA` mean.
 """
-struct DirichletConjugate{T<:Real} <: Inference
+struct DirichletConjugate{T<:Real} <: ParameterLearning
     lr_pA::T
     fr_pA::T
     lr_pB::T
@@ -69,8 +69,6 @@ function DirichletConjugate(; lr_pA::Real = 1.0, fr_pA::Real = 1.0,
                                   T(lr_pD), T(fr_pD),
                                   learn_pA, learn_pB, learn_pD, use_effective_A)
 end
-
-supports_parameters(::DirichletConjugate) = true
 
 function infer_parameters(alg::DirichletConjugate,
                           m::DiscretePOMDP,
@@ -216,11 +214,9 @@ end
 #   pB[f][s', s, a_f]      +=  lr · q_f(s'_τ) · q_f(s_{τ-1})
 #   pD[f][s_f]             +=  lr · q_f(s_1)
 #
-# `use_effective_A` flag: only meaningful for single-factor models in the
-# current implementation; for multi-factor models we just write the
-# Dirichlet mean (column-normalized) into A. The full digamma-corrected
-# effective likelihood for multi-factor A involves contractions and is a
-# follow-up.
+# `use_effective_A=true` works for both single- and multi-factor models:
+# the digamma-corrected effective likelihood is computed per (s_1, …, s_F)
+# "column" by `_mf_effective_A`, defined alongside `_effective_A` below.
 
 function infer_parameters(alg::DirichletConjugate,
                           m::MultiFactorDiscretePOMDP,
@@ -260,7 +256,9 @@ function infer_parameters(alg::DirichletConjugate,
                 new_pA[m_idx][o_m, ci] += alg.lr_pA * weight
             end
         end
-        new_A = [_mf_dirichlet_mean_A(new_pA[m_idx]) for m_idx in 1:M]
+        new_A = alg.use_effective_A ?
+            [_mf_effective_A(new_pA[m_idx])     for m_idx in 1:M] :
+            [_mf_dirichlet_mean_A(new_pA[m_idx]) for m_idx in 1:M]
     end
 
     # --- pB update ---
@@ -292,6 +290,45 @@ function infer_parameters(alg::DirichletConjugate,
 
     return MultiFactorDiscretePOMDP{eltype(new_A[1])}(
         new_A, m.B, m.C, m.D, m.E, new_pA, new_pB, new_pD, m.goal)
+end
+
+# Multi-factor digamma-corrected effective likelihood, analogous to the
+# single-factor `_effective_A`:
+#
+#   log Ã[o, s_1, …, s_F]  =  ψ(pA[o, s_1, …, s_F])  -  ψ(Σ_o pA[o, s_1, …, s_F])
+#   Ã[:, s_1, …, s_F]      =  softmax(log Ã[:, s_1, …, s_F])
+#
+# Couples parameter uncertainty into belief inference for multi-factor
+# models. Used when DirichletConjugate's `use_effective_A=true`.
+function _mf_effective_A(pA_m::AbstractArray{T}) where {T<:Real}
+    out = similar(pA_m, float(T))
+    factor_dims = size(pA_m)[2:end]
+    n_obs = size(pA_m, 1)
+    @inbounds for ci in CartesianIndices(factor_dims)
+        col_sum = zero(float(T))
+        for o in 1:n_obs
+            col_sum += pA_m[o, ci]
+        end
+        ψ_sum = SpecialFunctions_digamma(max(col_sum, eps(float(T))))
+
+        # Compute log Ã[:, ci], then softmax for stability
+        log_col = Vector{float(T)}(undef, n_obs)
+        for o in 1:n_obs
+            log_col[o] = SpecialFunctions_digamma(max(pA_m[o, ci], eps(float(T)))) - ψ_sum
+        end
+        m = maximum(log_col)
+        z = zero(float(T))
+        for o in 1:n_obs
+            out[o, ci] = exp(log_col[o] - m)
+            z += out[o, ci]
+        end
+        if z > zero(z)
+            for o in 1:n_obs
+                out[o, ci] /= z
+            end
+        end
+    end
+    return out
 end
 
 # Column-normalized Dirichlet mean: pA / Σ_o pA, per (s_1, …, s_F) column.

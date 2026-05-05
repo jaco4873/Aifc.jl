@@ -108,10 +108,12 @@ end
     @test agent.model.pA[1, 2] > agent.model.pA[2, 2]
 end
 
-@testset "errors on broken inference" begin
-    # An algorithm that doesn't support states should be rejected
+@testset "errors on broken inference (missing infer_states impl)" begin
+    # An Inference subtype that forgets to implement infer_states should
+    # error at first step!. (The constructor accepts any `<: Inference`;
+    # method-level dispatch catches the missing implementation at use.)
     struct _NoOpInference <: Aifc.Inference end
     m = random_pomdp(2, 2, 2; rng=Xoshiro(0))
-    @test_throws ArgumentError Agent(m, _NoOpInference(),
-                                       EnumerativeEFE(), Stochastic())
+    agent = Agent(m, _NoOpInference(), EnumerativeEFE(), Stochastic())
+    @test_throws ErrorException step!(agent, 1)
 end

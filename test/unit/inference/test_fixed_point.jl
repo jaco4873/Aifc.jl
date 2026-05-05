@@ -65,11 +65,9 @@ end
     end
 end
 
-@testset "interface capability queries" begin
-    alg = FixedPointIteration()
-    @test supports_states(alg)
-    @test !supports_parameters(alg)
-    @test :states in supported_targets(alg)
+@testset "interface: FixedPointIteration is an Inference" begin
+    @test FixedPointIteration <: Aifc.Inference
+    @test !(FixedPointIteration <: Aifc.ParameterLearning)
 end
 
 @testset "Conformance" begin

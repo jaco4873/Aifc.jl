@@ -54,9 +54,12 @@ export state_factors, observation_modalities, policy_horizon
 export nstates, nobservations, predict_states
 
 include("core/inference.jl")
-export Inference, LatentSubset, States, Parameters, Hyperparameters, Joint
-export infer_states, infer_parameters, infer_jointly, free_energy
-export supports_states, supports_parameters, supports_joint, supported_targets
+export Inference
+export infer_states, free_energy
+
+include("core/parameter_learning.jl")
+export ParameterLearning
+export infer_parameters
 
 include("core/policy_inference.jl")
 export PolicyInference
@@ -78,7 +81,7 @@ export Agent, step!, reset!
 # --- Layer 3: default implementations ---
 
 include("models/discrete_pomdp.jl")
-export DiscretePOMDP, random_pomdp, nactions
+export AbstractDiscretePOMDP, DiscretePOMDP, random_pomdp, nactions
 
 include("models/multi_factor_pomdp.jl")
 export MultiFactorDiscretePOMDP

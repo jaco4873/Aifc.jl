@@ -39,6 +39,8 @@ end
         include(joinpath(TEST_DIR, "unit", "core", "test_beliefs_helpers.jl"))
         include(joinpath(TEST_DIR, "unit", "core", "test_history_accessors.jl"))
         include(joinpath(TEST_DIR, "unit", "core", "test_agent_step_eltype.jl"))
+        include(joinpath(TEST_DIR, "unit", "core", "test_inference_parameter_split.jl"))
+        include(joinpath(TEST_DIR, "unit", "core", "test_abstract_discrete_pomdp.jl"))
     end
 
     @testset "models" begin
@@ -139,6 +141,9 @@ end
         end
         @testset "ActionModels.jl extension (multi-factor)" begin
             include(joinpath(TEST_DIR, "unit", "integration", "test_actionmodels_multi_factor.jl"))
+        end
+        @testset "DifferentiationInterface cross-backend gradient agreement" begin
+            include(joinpath(TEST_DIR, "unit", "integration", "test_di_backends.jl"))
         end
     end
 end

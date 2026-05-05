@@ -46,6 +46,15 @@ function _mf_history_one_step(observation::AbstractVector{<:Integer},
     return history
 end
 
+# Helper: single-factor history with one step (parallel to _mf_history_one_step)
+function _history_with_one_step_for_D(observation::Integer, qs::Vector{Float64},
+                                        action::Integer, model::DiscretePOMDP)
+    h = AgentHistory(state_prior(model))
+    push_step!(h, AgentStep(observation, Categorical(qs),
+                              [action], [1.0], [0.0], 0.0, action))
+    return h
+end
+
 @testset "pA conjugate update: multi-factor / multi-modality" begin
     m = _make_learnable_mf_pomdp(pA_concentration=1.0)
     qs = [[0.7, 0.3], [0.4, 0.6]]
@@ -139,4 +148,63 @@ end
     expected = zeros(3, 2, 2)
     expected[1, 1, 1] = 1.0
     @test m2.pA[1] ≈ expected atol=1e-12
+end
+
+@testset "use_effective_A=true: multi-factor digamma correction" begin
+    # Previously `use_effective_A=true` silently degraded to the Dirichlet
+    # mean on multi-factor models (the digamma correction was implemented
+    # only for single-factor). Closes that semantic gap.
+    #
+    # Asymptotically `digamma(x) - digamma(s) → log(x/s)` as concentrations
+    # grow large, so effective and mean coincide at high concentration.
+    # At low concentration the two differ — exactly the regime where the
+    # parameter-uncertainty coupling matters (Friston/Da Costa 2020).
+
+    m_small = _make_learnable_mf_pomdp(pA_concentration=1.0)
+    m_large = _make_learnable_mf_pomdp(pA_concentration=100.0)
+
+    qs = [[1.0, 0.0], [1.0, 0.0]]
+    h_peaked       = _mf_history_one_step([1], qs, [1, 1], m_small)
+    h_peaked_large = _mf_history_one_step([1], qs, [1, 1], m_large)
+
+    rule_eff  = DirichletConjugate(use_effective_A=true,  learn_pB=false, learn_pD=false)
+    rule_mean = DirichletConjugate(use_effective_A=false, learn_pB=false, learn_pD=false)
+
+    A_eff_small  = infer_parameters(rule_eff,  m_small, h_peaked).A[1]
+    A_mean_small = infer_parameters(rule_mean, m_small, h_peaked).A[1]
+
+    # 1. At low concentration the two differ — the digamma correction is
+    #    actually being computed (no longer silently the mean).
+    @test A_eff_small != A_mean_small
+
+    # 2. Both column-stochastic at every (s_1, s_2). This is what would
+    #    silently break if the digamma correction were buggy at the
+    #    multi-dim indexing.
+    for s1 in 1:2, s2 in 1:2
+        @test sum(A_eff_small[:, s1, s2])  ≈ 1 atol=1e-10
+        @test sum(A_mean_small[:, s1, s2]) ≈ 1 atol=1e-10
+    end
+
+    # 3. At high concentration the two converge.
+    A_eff_large  = infer_parameters(rule_eff,  m_large, h_peaked_large).A[1]
+    A_mean_large = infer_parameters(rule_mean, m_large, h_peaked_large).A[1]
+    @test A_eff_large ≈ A_mean_large atol=1e-3
+
+    # 4. Multi-factor effective A matches the single-factor effective A
+    #    for the trivial F=M=1 case (sanity that the multi-dim
+    #    implementation isn't doing something different from the original).
+    A_sf = [0.5 0.5; 0.5 0.5]
+    B_sf = zeros(2, 2, 1); B_sf[1,1,1]=1; B_sf[2,2,1]=1
+    pA_sf = [2.0  1.0;
+             1.0  3.0]
+    m_sf = DiscretePOMDP(A_sf, B_sf, [0.0, 0.0], [0.5, 0.5];
+                          pA=pA_sf, check=false)
+    m_mf = MultiFactorDiscretePOMDP(m_sf)
+
+    h_sf = _history_with_one_step_for_D(1, [0.6, 0.4], 1, m_sf)
+    h_mf = _mf_history_one_step([1], [[0.6, 0.4]], [1], m_mf)
+
+    A_sf_eff = infer_parameters(rule_eff, m_sf, h_sf).A
+    A_mf_eff = infer_parameters(rule_eff, m_mf, h_mf).A[1]
+    @test A_sf_eff ≈ A_mf_eff atol=1e-12
 end

@@ -25,6 +25,21 @@ using Distributions: Categorical
 using LinearAlgebra: I
 
 """
+    abstract type AbstractDiscretePOMDP <: GenerativeModel end
+
+Shared supertype for tabular A/B/C/D active-inference POMDPs. Both
+[`DiscretePOMDP`](@ref) (single-factor / single-modality) and
+[`MultiFactorDiscretePOMDP`](@ref) subtype it.
+
+Defined so that user code dispatching on `::AbstractDiscretePOMDP` works
+across both representations. Algorithm bodies in this package still
+mostly dispatch on the concrete subtypes — consolidating them onto the
+supertype is a follow-up refactor (the multi-factor methods would need
+F=1/M=1 fast paths that exactly match the current single-factor outputs).
+"""
+abstract type AbstractDiscretePOMDP <: GenerativeModel end
+
+"""
     DiscretePOMDP(A, B, C, D; E=nothing, pA=nothing, pB=nothing, pD=nothing,
                               goal=nothing, check=true)
 
@@ -44,7 +59,7 @@ column-stochastic and that `D` and `goal` (if set) sum to 1.
 - `D`: `[num_states]`, sums to 1
 - `goal`: `[num_states]`, sums to 1, or `nothing`
 """
-struct DiscretePOMDP{T<:Real} <: GenerativeModel
+struct DiscretePOMDP{T<:Real} <: AbstractDiscretePOMDP
     A::Matrix{T}
     B::Array{T, 3}
     C::Vector{T}

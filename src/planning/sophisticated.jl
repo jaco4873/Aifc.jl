@@ -91,12 +91,26 @@ end
 
 # Internal: evaluate (G, pragmatic_total, epistemic_total) along the
 # OPTIMAL continuation starting with action `a` at depth `depth`.
+#
+# Top-level entry takes a `Categorical` (the public posterior type);
+# internal recursion threads raw probability vectors so it never re-wraps
+# `Categorical(...)` per observation in the o-loop and reuses a `post`
+# buffer across the loop iterations.
 function _sophisticated_eval(planner::SophisticatedInference,
                               m::DiscretePOMDP,
                               qs::Categorical,
                               a::Integer,
                               depth::Integer)
-    cur_qs_p = m.B[:, :, a] * collect(probs(qs))
+    return _sophisticated_eval_p(planner, m, collect(probs(qs)), a, depth)
+end
+
+function _sophisticated_eval_p(planner::SophisticatedInference,
+                                m::DiscretePOMDP,
+                                qs_p::AbstractVector{<:Real},
+                                a::Integer,
+                                depth::Integer)
+    # Predicted next-state belief: B[:, :, a] · qs_p
+    cur_qs_p = @view(m.B[:, :, a]) * qs_p
     cur_qs_p ./= sum(cur_qs_p)        # numerical-safety renormalization
     qo        = m.A * cur_qs_p
 
@@ -109,22 +123,33 @@ function _sophisticated_eval(planner::SophisticatedInference,
     end
 
     # Recurse: at each predicted next observation, the agent picks the
-    # locally-optimal action and we average over q(o|a).
+    # locally-optimal action and we average over q(o|a). Reuse `post`
+    # across observations.
     future_prag = 0.0
     future_epi  = 0.0
+    post = similar(cur_qs_p)
+    nact = nactions(m)
     @inbounds for o in eachindex(qo)
         qo[o] > 1e-12 || continue
-        # Posterior given we observe o: q(s | o, π) ∝ q(s | π) · A[o, s]
-        post = cur_qs_p .* (@view m.A[o, :])
-        post ./= sum(post)
-        post_belief = Categorical(post)
+
+        # Bayes update in place: post[s] ∝ cur_qs_p[s] · A[o, s]
+        z = zero(eltype(post))
+        for s in eachindex(cur_qs_p)
+            v = cur_qs_p[s] * m.A[o, s]
+            post[s] = v
+            z += v
+        end
+        z > 0 || continue
+        for s in eachindex(post)
+            post[s] /= z
+        end
 
         best_G = Inf
         best_prag_branch = 0.0
         best_epi_branch  = 0.0
-        for a_next in 1:nactions(m)
+        for a_next in 1:nact
             G_branch, prag_branch, epi_branch =
-                _sophisticated_eval(planner, m, post_belief, a_next, depth - 1)
+                _sophisticated_eval_p(planner, m, post, a_next, depth - 1)
             if G_branch < best_G
                 best_G = G_branch
                 best_prag_branch = prag_branch
