@@ -37,8 +37,6 @@ end
 FixedPointIteration(; num_iter::Int=10, dF_tol::Real=1e-3) =
     FixedPointIteration(num_iter, Float64(dF_tol))
 
-supports_states(::FixedPointIteration) = true
-
 function infer_states(alg::FixedPointIteration,
                       m::DiscretePOMDP,
                       prior::Categorical,

@@ -117,9 +117,6 @@ Verify `alg` satisfies the state-inference contract on model `m`:
 function test_state_inference(alg::Inference, m::GenerativeModel;
                                 rng::AbstractRNG = Xoshiro(1))
     @testset "StateInference conformance ($(typeof(alg)))" begin
-        # Sanity: this algorithm supports states
-        @test Aifc.supports_states(alg)
-
         # Generate a sample observation under the model's prior
         sp = state_prior(m)
         s = rand(rng, sp)

@@ -110,9 +110,7 @@ end
     @test A_eff_large ≈ A_mean_large atol=1e-3
 end
 
-@testset "interface capability" begin
-    rule = DirichletConjugate()
-    @test !supports_states(rule)
-    @test supports_parameters(rule)
-    @test :parameters in supported_targets(rule)
+@testset "interface: DirichletConjugate is a ParameterLearning" begin
+    @test DirichletConjugate <: Aifc.ParameterLearning
+    @test !(DirichletConjugate <: Aifc.Inference)
 end

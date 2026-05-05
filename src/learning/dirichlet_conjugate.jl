@@ -41,7 +41,7 @@ replaced by the digamma-corrected effective likelihood (`expectedLogA` →
 column-normalized exponential). This is what couples parameter uncertainty
 to belief inference. Set to `false` to use the simple `pA / Σ pA` mean.
 """
-struct DirichletConjugate{T<:Real} <: Inference
+struct DirichletConjugate{T<:Real} <: ParameterLearning
     lr_pA::T
     fr_pA::T
     lr_pB::T
@@ -69,8 +69,6 @@ function DirichletConjugate(; lr_pA::Real = 1.0, fr_pA::Real = 1.0,
                                   T(lr_pD), T(fr_pD),
                                   learn_pA, learn_pB, learn_pD, use_effective_A)
 end
-
-supports_parameters(::DirichletConjugate) = true
 
 function infer_parameters(alg::DirichletConjugate,
                           m::DiscretePOMDP,

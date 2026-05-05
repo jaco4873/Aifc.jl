@@ -55,8 +55,11 @@ export nstates, nobservations, predict_states
 
 include("core/inference.jl")
 export Inference
-export infer_states, infer_parameters, free_energy
-export supports_states, supports_parameters, supported_targets
+export infer_states, free_energy
+
+include("core/parameter_learning.jl")
+export ParameterLearning
+export infer_parameters
 
 include("core/policy_inference.jl")
 export PolicyInference

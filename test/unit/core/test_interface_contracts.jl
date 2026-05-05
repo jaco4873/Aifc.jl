@@ -14,16 +14,16 @@ using Aifc
 using Aifc: GenerativeModel, Inference, PolicyInference, ActionSelector
 using Aifc: state_prior, observation_distribution, transition_distribution
 using Aifc: log_preferences, action_space, predict_states
+using Aifc: ParameterLearning
 using Aifc: infer_states, infer_parameters, free_energy
 using Aifc: posterior_policies, expected_free_energy
 using Aifc: pragmatic_value, epistemic_value, enumerate_policies
 using Aifc: action_distribution, sample_action, log_action_probabilities
-using Aifc: supports_states, supports_parameters
-using Aifc: supported_targets
 
 # Empty subtypes that don't implement anything
 struct _MockModel <: GenerativeModel end
 struct _MockInference <: Inference end
+struct _MockParameterLearning <: ParameterLearning end
 struct _MockPolicyInference <: PolicyInference end
 struct _MockActionSelector <: ActionSelector end
 
@@ -51,12 +51,12 @@ end
     m = _MockModel()
     @test_throws Exception infer_states(alg, m, nothing, 1)
     @test_throws Exception free_energy(alg, m, nothing, 1, nothing)
-    @test_throws Exception infer_parameters(alg, m, nothing)
+end
 
-    # Default capability flags
-    @test supports_states(alg) == false
-    @test supports_parameters(alg) == false
-    @test isempty(supported_targets(alg))
+@testset "ParameterLearning: required methods throw on unimplemented subtype" begin
+    alg = _MockParameterLearning()
+    m = _MockModel()
+    @test_throws Exception infer_parameters(alg, m, nothing)
 end
 
 @testset "PolicyInference: required methods throw on unimplemented subtype" begin

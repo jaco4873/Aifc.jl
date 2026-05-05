@@ -21,12 +21,12 @@ Composition of the four (or five) building blocks of an active-inference agent.
 
 The agent owns its `AgentHistory`, initialized with the model's `state_prior`.
 """
-mutable struct Agent{M<:GenerativeModel, SI, PI, AS, PL, R<:AbstractRNG}
+mutable struct Agent{M<:GenerativeModel, SI<:Inference, PI, AS, PL, R<:AbstractRNG}
     model::M
     state_inference::SI
     policy_inference::PI
     action_selection::AS
-    parameter_learning::PL              # ::Inference or ::Nothing
+    parameter_learning::PL              # ::ParameterLearning or ::Nothing
     rng::R
     history::AgentHistory
 end
@@ -35,14 +35,8 @@ function Agent(model::GenerativeModel,
                state_inference::Inference,
                policy_inference::PolicyInference,
                action_selection::ActionSelector;
-               parameter_learning::Union{Nothing, Inference} = nothing,
+               parameter_learning::Union{Nothing, ParameterLearning} = nothing,
                rng::AbstractRNG = default_rng())
-    supports_states(state_inference) ||
-        throw(ArgumentError("Agent: state_inference $(typeof(state_inference)) does not implement infer_states"))
-    if parameter_learning !== nothing
-        supports_parameters(parameter_learning) ||
-            throw(ArgumentError("Agent: parameter_learning $(typeof(parameter_learning)) does not implement infer_parameters"))
-    end
     history = AgentHistory(state_prior(model))
     return Agent(model, state_inference, policy_inference, action_selection,
                  parameter_learning, rng, history)
