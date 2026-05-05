@@ -76,3 +76,29 @@ end
     @test all(isfinite, G_d1)
     @test all(isfinite, G_d2)
 end
+
+@testset "horizon=3 deep recursion: finite, decomposition holds, posterior valid" begin
+    # Deeper recursion: exercises the per-observation `post` buffer reuse at
+    # multiple recursion levels. If the buffer-reuse optimization corrupted
+    # state across iterations, the EFE-decomposition identity
+    #   G(π) ≈ -(pragmatic + epistemic)
+    # would fail.
+    rng = Xoshiro(0xC0DE)
+    m = random_pomdp(3, 4, 2; rng=Xoshiro(0xC0FE))
+    qs = Categorical(softmax(randn(rng, 4)))
+
+    s = SophisticatedInference(γ=4.0, horizon=3)
+    policies = collect(enumerate_policies(s, m, qs))
+    q_pi, G = posterior_policies(s, m, qs, policies)
+
+    @test all(isfinite, G)
+    @test sum(q_pi) ≈ 1 atol=1e-10
+
+    for π in policies
+        prag = pragmatic_value(s, m, qs, π)
+        epi  = epistemic_value(s, m, qs, π)
+        G_π  = expected_free_energy(s, m, qs, π)
+        @test G_π ≈ -(prag + epi) atol=1e-10
+        @test epi >= -1e-10
+    end
+end
