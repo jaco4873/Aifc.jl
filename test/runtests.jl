@@ -40,6 +40,7 @@ end
         include(joinpath(TEST_DIR, "unit", "core", "test_history_accessors.jl"))
         include(joinpath(TEST_DIR, "unit", "core", "test_agent_step_eltype.jl"))
         include(joinpath(TEST_DIR, "unit", "core", "test_inference_parameter_split.jl"))
+        include(joinpath(TEST_DIR, "unit", "core", "test_abstract_discrete_pomdp.jl"))
     end
 
     @testset "models" begin

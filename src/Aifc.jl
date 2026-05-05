@@ -81,7 +81,7 @@ export Agent, step!, reset!
 # --- Layer 3: default implementations ---
 
 include("models/discrete_pomdp.jl")
-export DiscretePOMDP, random_pomdp, nactions
+export AbstractDiscretePOMDP, DiscretePOMDP, random_pomdp, nactions
 
 include("models/multi_factor_pomdp.jl")
 export MultiFactorDiscretePOMDP
