@@ -54,9 +54,9 @@ export state_factors, observation_modalities, policy_horizon
 export nstates, nobservations, predict_states
 
 include("core/inference.jl")
-export Inference, LatentSubset, States, Parameters, Hyperparameters, Joint
-export infer_states, infer_parameters, infer_jointly, free_energy
-export supports_states, supports_parameters, supports_joint, supported_targets
+export Inference
+export infer_states, infer_parameters, free_energy
+export supports_states, supports_parameters, supported_targets
 
 include("core/policy_inference.jl")
 export PolicyInference

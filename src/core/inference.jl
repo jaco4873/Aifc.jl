@@ -8,9 +8,6 @@
 #
 #   - `infer_states(alg, m, prior, observation)`  —  per-step state inference
 #   - `infer_parameters(alg, m, history)`         —  parameter learning
-#   - `infer_jointly(alg, m, history, observation)` — joint state+param+hyperparam
-#                                                     inference (e.g. generalized
-#                                                     filtering)
 #
 # Every algorithm that does state inference must also implement
 #   - `free_energy(alg, m, prior, observation, q)` — VFE at the posterior
@@ -40,24 +37,9 @@ they support by overriding methods.
   Multi-step parameter learning: return a model with updated parameter
   posteriors (e.g. Dirichlet hyperparameters) given a full trajectory.
 
-- `infer_jointly(alg, m, history, observation)` → `NamedTuple`
-
-  Joint inference over states + parameters + hyperparameters. Used by
-  generalized filtering and similar algorithms that don't separate timescales.
-  Returns `(states::Distribution, model::GenerativeModel, free_energy::Real)`.
-
-Use [`supports_states`](@ref), [`supports_parameters`](@ref),
-[`supports_joint`](@ref) to query at runtime.
+Use [`supports_states`](@ref), [`supports_parameters`](@ref) to query at runtime.
 """
 abstract type Inference end
-
-# --- LatentSubset type tags (reserved for future joint-inference dispatch) ---
-
-abstract type LatentSubset end
-struct States <: LatentSubset end
-struct Parameters <: LatentSubset end
-struct Hyperparameters <: LatentSubset end
-struct Joint{T<:Tuple} <: LatentSubset end
 
 # --- Default fallbacks ---
 
@@ -67,10 +49,6 @@ end
 
 function infer_parameters(alg::Inference, m::GenerativeModel, history)
     error("$(typeof(alg)) does not implement infer_parameters. Available targets: $(supported_targets(alg))")
-end
-
-function infer_jointly(alg::Inference, m::GenerativeModel, history, observation)
-    error("$(typeof(alg)) does not implement infer_jointly. Available targets: $(supported_targets(alg))")
 end
 
 function free_energy(alg::Inference, m::GenerativeModel, prior, observation, q)
@@ -86,12 +64,10 @@ end
 
 supports_states(::Inference)     = false
 supports_parameters(::Inference) = false
-supports_joint(::Inference)      = false
 
 function supported_targets(alg::Inference)
     targets = Symbol[]
     supports_states(alg) && push!(targets, :states)
     supports_parameters(alg) && push!(targets, :parameters)
-    supports_joint(alg) && push!(targets, :joint)
     return targets
 end

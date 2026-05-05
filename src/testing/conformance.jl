@@ -21,7 +21,7 @@ using ..Aifc: GenerativeModel, Inference, PolicyInference, ActionSelector
 using ..Aifc: state_prior, observation_distribution, transition_distribution
 using ..Aifc: log_preferences, action_space, log_policy_prior
 using ..Aifc: goal_state_prior, state_factors, observation_modalities
-using ..Aifc: infer_states, infer_parameters, infer_jointly, free_energy
+using ..Aifc: infer_states, infer_parameters, free_energy
 using ..Aifc: posterior_policies, expected_free_energy
 using ..Aifc: pragmatic_value, epistemic_value, enumerate_policies
 using ..Aifc: sample_action, log_action_probabilities

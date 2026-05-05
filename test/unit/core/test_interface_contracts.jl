@@ -14,11 +14,11 @@ using Aifc
 using Aifc: GenerativeModel, Inference, PolicyInference, ActionSelector
 using Aifc: state_prior, observation_distribution, transition_distribution
 using Aifc: log_preferences, action_space, predict_states
-using Aifc: infer_states, infer_parameters, infer_jointly, free_energy
+using Aifc: infer_states, infer_parameters, free_energy
 using Aifc: posterior_policies, expected_free_energy
 using Aifc: pragmatic_value, epistemic_value, enumerate_policies
 using Aifc: action_distribution, sample_action, log_action_probabilities
-using Aifc: supports_states, supports_parameters, supports_joint
+using Aifc: supports_states, supports_parameters
 using Aifc: supported_targets
 
 # Empty subtypes that don't implement anything
@@ -52,12 +52,10 @@ end
     @test_throws Exception infer_states(alg, m, nothing, 1)
     @test_throws Exception free_energy(alg, m, nothing, 1, nothing)
     @test_throws Exception infer_parameters(alg, m, nothing)
-    @test_throws Exception infer_jointly(alg, m, nothing, 1)
 
     # Default capability flags
     @test supports_states(alg) == false
     @test supports_parameters(alg) == false
-    @test supports_joint(alg) == false
     @test isempty(supported_targets(alg))
 end
 
