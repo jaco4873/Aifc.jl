@@ -140,5 +140,8 @@ end
         @testset "ActionModels.jl extension (multi-factor)" begin
             include(joinpath(TEST_DIR, "unit", "integration", "test_actionmodels_multi_factor.jl"))
         end
+        @testset "DifferentiationInterface cross-backend gradient agreement" begin
+            include(joinpath(TEST_DIR, "unit", "integration", "test_di_backends.jl"))
+        end
     end
 end

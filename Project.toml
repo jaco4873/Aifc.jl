@@ -22,6 +22,7 @@ ActionModels = "0.7"
 ADTypes = "1"
 Aqua = "0.8"
 DataFrames = "1"
+DifferentiationInterface = "0.6, 0.7"
 Distributions = "0.25"
 FiniteDifferences = "0.12"
 ForwardDiff = "0.10"
@@ -39,6 +40,7 @@ ActionModels = "320cf53b-cc3b-4b34-9a10-0ecb113566a3"
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
@@ -46,4 +48,4 @@ ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["ActionModels", "ADTypes", "Aqua", "DataFrames", "FiniteDifferences", "ForwardDiff", "JSON3", "ReverseDiff", "Test"]
+test = ["ActionModels", "ADTypes", "Aqua", "DataFrames", "DifferentiationInterface", "FiniteDifferences", "ForwardDiff", "JSON3", "ReverseDiff", "Test"]

@@ -25,10 +25,12 @@ Four principles:
    ([pymdp](https://github.com/infer-actively/pymdp) targets) and an
    independently-validated TypeScript primer is checked in CI.
 4. **Backend-agnostic differentiation.** No autodiff backend is named in
-   the core; downstream users will compose with
+   the core; the algorithms carry parametric `T<:Real` so that `Dual` /
+   `TrackedReal` / etc. flow through unmodified. ForwardDiff and ReverseDiff
+   are validated to produce agreeing gradients (and matching finite-
+   differences) on the agent log-likelihood through
    [DifferentiationInterface.jl](https://github.com/JuliaDiff/DifferentiationInterface.jl)
-   to choose ForwardDiff / ReverseDiff / Zygote / Enzyme / Mooncake at call
-   time.
+   in CI.
 
 ## Status
 
