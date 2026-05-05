@@ -34,12 +34,13 @@ Four principles:
 
 ## Status
 
-**v0.1 development.** Core layers are landed and tested; specific
-extensions (ActionModels.jl integration, multi-factor states, generalized
-filtering, hierarchical models, MCTS) are explicitly out of scope for the
-initial release and will land in follow-up PRs.
+**v0.1.0 released.** Core layers are landed and tested, multi-factor
+POMDPs ship via `AbstractDiscretePOMDP`, and ActionModels.jl integration
+ships as a package extension. Generalized filtering, hierarchical models,
+and MCTS are explicitly out of scope for v0.1 and will land in follow-up
+releases.
 
-3,010 tests passing on Julia 1.10 + 1.12 (Linux + macOS).
+11,549 tests passing on Julia 1.10 + 1.12 (Linux + macOS).
 
 ## What's shipping
 
@@ -47,8 +48,8 @@ initial release and will land in follow-up PRs.
 |---|---|
 | **Math primitives** | `softmax` (with tempered variant), `logsoftmax`, `entropy`, `kl_divergence`, `cross_entropy`, `bayesian_surprise`, `variational_free_energy` with `accuracy`/`complexity` decomposition |
 | **Beliefs** | `Distributions.jl`-based; `belief_style` trait for invariant testing; `categorical_belief` / `product_belief` constructors |
-| **Models** | `DiscretePOMDP` (single-factor A/B/C/D/E with optional Dirichlet hyperparameters and goal-state prior), `FunctionalModel` (closure-based) |
-| **State inference** | `FixedPointIteration` (single-factor closed form q(s) ∝ A[o,s]·prior[s]) |
+| **Models** | `AbstractDiscretePOMDP` supertype with two concrete types: `DiscretePOMDP` (single-factor A/B/C/D/E) and `MultiFactorDiscretePOMDP` (multi-factor states + multi-modality observations), both with optional Dirichlet hyperparameters and goal-state prior. `FunctionalModel` (closure-based) for non-tabular models |
+| **State inference** | `FixedPointIteration`: closed-form q(s) ∝ A[o,s]·prior[s] for single-factor; iterative mean-field q(s) = ∏_f q_f(s_f) for multi-factor |
 | **Policy inference** | `EnumerativeEFE`, `SophisticatedInference` (Bellman recursion), `InductiveEFE` (goal-state-prior weighting; wraps any base planner) |
 | **Action selection** | `Stochastic(α)`, `Deterministic` |
 | **Parameter learning** | `DirichletConjugate` (online conjugate update, optional digamma-corrected effective likelihood) |
@@ -168,19 +169,20 @@ The package's credibility lives in the test suite. We verify:
 - **Numerical stability sweeps** — softmax with inputs in `[-1e10, +1e10]`
   produces no NaNs / Infs / underflow
 
-3,010 assertions in CI on every push.
+11,549 assertions in CI on every push.
 
 ## What's coming (roughly in priority order)
 
-- ActionModels.jl integration (package extension; lets the agent fit to
-  behavioral data via Turing.jl)
-- Multi-factor state spaces and multi-modality observations
 - Continuous-time state-space models + generalized filtering (Buckley/Kim/
   McGregor/Seth 2017; Friston 2008)
 - Hierarchical models with timescale separation
 - MCTS-based planning for large policy spaces
 - Amortized inference (neural q(s|o))
 - Simulation-based calibration (SBC) infrastructure
+- Lifting the ActionModels.jl extension's v0.1 limitations (multi-modality
+  + multi-action-factor agents, online Dirichlet learning through the
+  ActionModel entry point, full `ForwardDiff.Dual` propagation through
+  inference for Turing-NUTS fitting)
 
 ## Installation
 
