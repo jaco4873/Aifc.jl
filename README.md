@@ -4,12 +4,13 @@
 [![codecov](https://codecov.io/gh/jaco4873/Aifc.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/jaco4873/Aifc.jl)
 
 A Julia package for [active inference](https://en.wikipedia.org/wiki/Free_energy_principle),
-written as an alternative to
+inspired by
 [ActiveInference.jl](https://github.com/samuelnehrer02/ActiveInference.jl)
-(Laursen & Nehrer, 2024) — the first Julia package for active inference, which
-remains the more pymdp-faithful choice. The two share no code; this one explores
-a different design point built around abstract-type interfaces, parametric
+(Laursen & Nehrer, 2024), the first Julia package for active inference and
+the more pymdp-faithful one. Aifc.jl is a complementary exploration that
+takes a different architectural angle: abstract-type interfaces, parametric
 autodiff types, and a separated math/inference/planning/action layer cake.
+The two share no code; pick whichever fits your problem.
 
 Four principles:
 
