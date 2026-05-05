@@ -1,0 +1,23 @@
+# Julia
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+/Manifest.toml
+/test/Manifest.toml
+/docs/build/
+/docs/site/
+
+# Generated plots from example scripts
+examples/plots/
+
+# Code coverage output
+.coverage/
+
+# OS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo

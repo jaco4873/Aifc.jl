@@ -1,0 +1,2 @@
+inferactively-pymdp>=0.0.7.1
+numpy>=1.20
